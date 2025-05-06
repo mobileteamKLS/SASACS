@@ -383,10 +383,17 @@
                   <td class="col2"><span id="TSPPayAmountAfterGenerate"></span></td>
               </tr>
        
-         
+              <tr class="table_row">
+                <td class="spanTD">Charge Code (Opt.)</td>
+                <td class="col2"><span id="ChargeCodeAfterGenerate"></span></td>
+            </tr>
+            <tr class="table_row">
+              <td class="spanTD">Remark (if any)</td>
+              <td class="col2"><span id="remarkfterGenerate"></span></td>
+          </tr>
        
         </table>
-        <div class="contacts row contacts__itemfortext" >
+        <div class="contacts row contacts__itemfortext" style="margin-bottom: 20px;">
             
           <div class="col-6">
             <div class="form-group">
@@ -425,7 +432,7 @@
                   </select></td>
               </tr>
               <tr class="table_row" id="hsnCode">
-                <td class="spanTD">HSN Code</td>
+                <td class="spanTD">HSN Code (Opt.)</td>
                 <td class="col2"><input type="tel"  id="HSNCode"  class="fontSize10" style="border-bottom: 1px solid black;" onkeydown="if(event.key==='.'){event.preventDefault();}"  oninput="event.target.value = event.target.value.replace(/[^0-9]*/g,'');" maxlength = "10" ></input></td>
               </tr>
               <tr class="table_row">
@@ -456,6 +463,17 @@
               <td class="spanTD" id="lblFlightNo">Flight No./Date</td>
               <td class="col2"><span id="TSPFlightNoDate"></span></td>
           </tr>
+          <tr class="table_row">
+            <td class="spanTD">Charge Code (Opt.)</td>
+            <td class="col2"><select class="textfieldClass" id="chargeCode" style="background-color: #fff;border: none;border-bottom: 1px solid #333;font-size: 15px;font-weight: bold;" >
+          
+            </select></td>
+        </tr>
+        <tr class="table_row">
+          <td class="spanTD">Remark (if any)</td>
+          <td class="col2"><textarea class="textfieldClass" id="remark" style="background-color: #fff;border: none;border-bottom: 1px solid #333;font-size: 15px;font-weight: bold;" rows="4" cols="50" ></textarea>
+           </td>
+      </tr>
         </table>
 
         <div id = "proceedBtn" class="contacts row contacts__itemfortext"  style="padding: 0px 5px !important;margin-right: 10px;margin-left: 10px;">

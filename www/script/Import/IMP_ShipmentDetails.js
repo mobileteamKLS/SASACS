@@ -2314,9 +2314,9 @@ console.log(dateandTime);
               "strShipmentMode":"IMP",
               "chrPaymentMode":"P",
               "BaseStation":"SHJ",
-              "decTotalAmount":decTotalAmount,
-              "decTotalTax":decTotalTax,
-              "decTotalRcptAmount":decTotalRcptAmount,
+              "decTotalAmount":0,
+              "decTotalTax":0,
+              "decTotalRcptAmount":0,
               "intFFJObId":"0",
               "intFWDJObId":"0",
               "strCHAJobId":"",
@@ -2422,14 +2422,14 @@ console.log(dateandTime);
             
             errmsg = "Wrong MAWB number</br>";
             errmsgcont = "Please enter a valid MAWB number</br>";
-            $.alert(errmsg,errmsgcont);
+            // $.alert(errmsg,errmsgcont);
             return;
         }
 
     },
     error: function (xhr, textStatus, errorThrown) {
         $("body").mLoading('hide');
-        alert('Server not responding...');
+        // alert('Server not responding...');
     }
   });
   }
@@ -2481,7 +2481,7 @@ var DOstatusHouse;
           }else{
           var DOnum = "";}
                 row += " <div class= 'div-wrapper' style= 'background-color:#03b6ae !important;padding: 5px 5px;'>";
-                row += " <div onclick='goToMasterDetails(" + MAWBNo+ ", " + DOnum+ ")'>";
+                row += " <div onclick='goToMasterDetails(" + MAWBNo+ ")'>";
               
                 row += " <h5 class='primary-heading' style='padding: 10px;display: inline-flex;color:white;font-size: 13px;margin:0px !important'>" + MAWBNo+ "&nbsp;&nbsp;&nbsp;&nbsp;" + DOnum+ "</h5>";
                 row += " <button id='' class='btn-arrow' style= 'float:right;margin :3px 10px' ><i class='zmdi zmdi-chevron-right' style= 'color:white;font-size:25px'></i></button>";
@@ -2496,7 +2496,7 @@ var DOstatusHouse;
           var DOnum = "";}
           
                 row += " <div class= 'div-wrapper' id='master' style= 'background-color:#03b6ae !important'>";
-                row += " <div onclick='goToMasterDetails(" + MAWBNo+ ", " + DOnum+ ")'>";
+                row += " <div onclick='goToMasterDetails(" + MAWBNo+ ")'>";
               
                 // row += " <h5 class='primary-heading' style='padding: 10px;display: inline-flex;color:white;font-size: 13px;margin:0px !important'>" + MAWBNo+ "</h5>";
                 // row += " <h5 class='primary-heading' style='padding: 10px;display: inline-flex;color:white;font-size: 13px;margin:0px !important'>" + DOnum+ "</h5>";
@@ -2512,7 +2512,7 @@ var DOstatusHouse;
                 if(DOLevel == "DOHAWBLevel")           
                 row += "<h5 class='primary-heading' style='padding: 10px;display: inline-flex;color:white;font-size: 13px;margin-top:8px !important'></h5>"
                 else
-                row += "<h5 class='primary-heading' style='padding: 10px;display: inline-flex;color:white;font-size: 13px;margin-top:8px !important'>" + DOnum+ "</h5>"
+                row += "<h5 class='primary-heading' style='padding: 10px 0px;display: inline-flex;color:white;font-size: 13px;margin-top:8px !important'>" + DOnum+ "</h5>"
                 row += "</div>";
                 row += "</div>";
                 row += "<div class='col-3' style='text-align: right;'>";
@@ -2533,7 +2533,7 @@ var DOstatusHouse;
                 var house = '"' + d.HAWBNo + '"';
                 var hid = '"' + d.HID + '"';
                 row += " <div class= 'div-wrapper' id='house' style= 'background-color:#03b6ae !important'>";
-                row += " <div onclick='goToHouseDetails(" + house+ ", " + hid+ ", " + DOnumber + ")'>";
+                row += " <div onclick='goToHouseDetails(" + house+ ", " + hid+ ")'>";
               
                 row += "<div class='contacts row contacts__itemfortext1' style='height:52px;'>";
                 row += "<div class='col-5' id ='lblSbDate'>";
@@ -2543,7 +2543,7 @@ var DOstatusHouse;
                 row += "</div>";
                 row += "<div class='col-4' style=''>";
                 row += "<div class='form-group'>";
-                row += "<h5 class='primary-heading' style='padding: 10px;display: inline-flex;color:white;font-size: 13px;margin-top:8px !important'>" + DOnumber + "</h5>"
+                row += "<h5 class='primary-heading' style='padding: 10px 0px;display: inline-flex;color:white;font-size: 13px;margin-top:8px !important'>" + DOnumber + "</h5>"
                 row += "</div>";
                 row += "</div>";
                 row += "<div class='col-3' style='text-align: right;'>";
@@ -2582,15 +2582,11 @@ var DOstatusHouse;
         } 
       
 
-        goToMasterDetails = function (number, DO) {
+        goToMasterDetails = function (number) {
            console.log(number);
            localStorage.setItem('hawbNo', "");
            localStorage.setItem('isHouse', false);
-           if(DO == "" || DO == undefined )
-        localStorage.setItem('DONo', "");
-      else
-      localStorage.setItem('DONo', DO);
-       
+      
            if(DOLevel == "DOHAWBLevel")  {
               errmsg = "Alert</br>";
               errmsgcont = "DO generated at HAWB level</br>";
@@ -2600,11 +2596,8 @@ var DOstatusHouse;
               window.location.href = 'IMP_DOPayment.html';
  
       }
-      goToHouseDetails = function (number, id, DoNumber) {
-        if(DoNumber == undefined)
-        localStorage.setItem('DONo', "");
-      else
-      localStorage.setItem('DONo', DoNumber);
+      goToHouseDetails = function (number, id) {
+   
         localStorage.setItem('hawbNo', number);
         localStorage.setItem('HawbRowId', id);
         localStorage.setItem('isHouse', true);

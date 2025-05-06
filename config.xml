@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget defaultlocale="en-US" id="com.kale.SAS" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0" xmlns:vs="http://schemas.microsoft.com/appx/2014/htmlapps">
+<widget defaultlocale="en-US" id="com.kale.SAS" version="2.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0" xmlns:vs="http://schemas.microsoft.com/appx/2014/htmlapps">
     <name>
 		SAS-ACS
 	</name>
@@ -7,7 +7,7 @@
 		Application for SAS.
 	</description>
     <author email="dev@cordova.apache.org" href="http://cordova.io">
-		ACS GMR HYD Team
+		ACS SAS Team
 	</author>
     <content src="loginScreen2.html" />
     <access origin="*" />
@@ -21,7 +21,12 @@
         <allow-intent href="market:*" />
         <preference name="SplashMaintainAspectRatio" value="true" />
         <preference name="SplashShowOnlyFirstTime" value="true" />
-        <preference name="android-targetSdkVersion" value="31"/>
+        <preference name="android-targetSdkVersion" value="34"/>
+        <preference name="android-compileSdkVersion" value="34"/>
+   
+ 
+<preference name="AndroidGradlePluginVersion" value="7.1.2" />  
+<preference name="GradleVersion" value="7.2" />
         <!-- <preference name="AndroidUpdateAlertType" value="Flexible" /> -->
         <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
             <application usesCleartextTraffic="true" />

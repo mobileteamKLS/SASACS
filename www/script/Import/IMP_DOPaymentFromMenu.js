@@ -11,6 +11,7 @@ var HawbNumber = localStorage.getItem('hawbNo');
 var isHouse = localStorage.getItem('isHouse');
 var MawbID = localStorage.getItem('MawbRowId');
 var HawbID = localStorage.getItem('HawbRowId');
+var DOLevel = localStorage.getItem('DOLevel');
 
 var DOstatus = localStorage.getItem('DOstatus');
 var DONumber = localStorage.getItem('DONo');
@@ -19,6 +20,7 @@ var MultipleSHC = localStorage.getItem('MultipleSHC');
 var FlightNo = localStorage.getItem('FlightNo');
 var FlightDate = localStorage.getItem('FlightDate');
 var DamagedNOP;
+var DOPath;
 localStorage.setItem('FinalVTList',  "");
 
 localStorage.setItem('HouseArrayData',"");
@@ -53,35 +55,38 @@ var fileUploadParm;
   var OoCFilePath;
   var BoEFilePath;
   $(function () {
-
-    if(DOstatus =="Completed"){
+    getCTOStatusDetails();
+    Get_ChargeCode();
+    if(DOstatus =="Completed" || DOstatus =="Partial"){
       getTSPDetailsApproved();
+      ACS_Imp_Get_DO_Print();
      }
-     else if(DONumber){
-      getTSPDetailsApproved();
-    }
-     else if(MultipleSHC !== "null"){
-      if(MultipleSHC.includes("AVI") || MultipleSHC.includes("RMD") || MultipleSHC.includes("VAL")){
-        getCTOStatusDetails();
+    //  else if(DONumber){
+    //   getTSPDetailsApproved();
+    //   ACS_Imp_Get_DO_Print();
+    // }
+    //  else if(MultipleSHC !== "null"){
+    //   if(MultipleSHC.includes("AVI") || MultipleSHC.includes("RMD") || MultipleSHC.includes("VAL")){
+    //     getCTOStatusDetails();
         CheckTSPConfigurationSetting();
-      }else{
-        var CommodityGroup = "NA";
-        var CommodityName = "NA";
-        getTSPDetailsKaleGHA(CommodityGroup,CommodityName);
-        $("#ddlCommodityNameList").html('<option>Select</option>').attr('disabled','disabled');  
-      }
-     }else{
-      var CommodityGroup = "NA";
-      var CommodityName = "NA";
-      getTSPDetailsKaleGHA(CommodityGroup,CommodityName);
-      $("#ddlCommodityNameList").html('<option>Select</option>').attr('disabled','disabled');  
-     }
+    //   }else{
+    //     var CommodityGroup = "NA";
+    //     var CommodityName = "NA";
+    //     getTSPDetailsKaleGHA(CommodityGroup,CommodityName);
+    //     $("#ddlCommodityNameList").html('<option>Select</option>').attr('disabled','disabled');  
+    //   }
+    //  }else{
+    //   var CommodityGroup = "NA";
+    //   var CommodityName = "NA";
+    //   getTSPDetailsKaleGHA(CommodityGroup,CommodityName);
+    //   $("#ddlCommodityNameList").html('<option>Select</option>').attr('disabled','disabled');  
+    //  }
 
      
- if(DONumber)
- $("#DoNumber").text(DONumber);
- else
- $("#DoNumber").text("");
+//  if(DONumber)
+//  $("#DoNumber").text(DONumber);
+//  else
+//  $("#DoNumber").text("");
 
  if(isHouse == "true")
  $("#shipmentData").text(HawbNumber);
@@ -142,6 +147,33 @@ function myFunction() {
 });
 
 
+Get_ChargeCode = function () {
+  $.ajax({
+      type: 'POST',
+      url: ACSServiceURL + "/GetChargeCodeDetails",
+      contentType: "application/json; charset=utf-8",
+      dataType: "json",
+      success: function (response, xhr, textStatus) {
+          var obj = JSON.parse(response.d);
+          if (obj.length > 0) {
+
+              var rson;
+              rson += '<option value="">Select</option>';
+              for (var i = 0; i < obj.length; i++) {
+                  rson += '<option value="' + obj[i].Value + '">' + obj[i].ChargeCode + '</option>';
+              }
+              $("#chargeCode").html(rson);
+
+
+          }
+
+      },
+      error: function (xhr, textStatus, errorThrown) {
+          $("body").mLoading('hide');
+          //alert('Server not responding...');
+      }
+  });
+}
 
 
 function back() {
@@ -698,10 +730,7 @@ $("#shipmentDataAfterGenerate").text(HawbNumber);
 else
 $("#shipmentDataAfterGenerate").text(MAWBNo);
 
-if(DONumber)
-$("#DoNumberAfterGenerate").text(DONumber);
-else
-$("#DoNumberAfterGenerate").text("");
+
 if(isHouse == "true"){
   var house = HawbNumber;
   var houseID = HawbID
@@ -760,7 +789,12 @@ $("#viewList").empty();
       }
       $("#HSNCode").hide();
       $("#hsnCode").hide();
-        $("#HSNCode").val(obj[0].HSNCode1).attr('disabled','disabled');
+
+    
+        $("#DoNumberAfterGenerate").text(obj[0].IHM_DONO);
+    
+      $("#ChargeCodeAfterGenerate").text(obj[0].IHM_DO_ChargeCode);
+      $("#remarkfterGenerate").text(obj[0].IHM_DORemark);
         $("#payModeAfterGenerate").text(obj[0].PaymentMode); 
         $("#TSPCommCodeAfterGenerate").text((obj[0].CommodityCode));
         $("#TSPFlightNoDate").text((FlightNo +" / "+  FlightDate));
@@ -792,7 +826,7 @@ $("#viewList").empty();
           //   $eventItem = $(xmlDoc).find("clsChargeDetails");  
           // }
 
-          $eventItem = $(xmlDoc).find("clsImpChargeDetails");  
+          $eventItem = $(xmlDoc).find("clsInvoiceDetailsResponseTSP");  
           var row = "";
           row += " <tr class=''>";
           $eventItem.each(function(index, element) {     
@@ -983,108 +1017,132 @@ error: function (xhr, textStatus, errorThrown) {
   };
   }
 
+  getTSPDetailsMABB = function(CommodityGroup,CommodityName){
+    $('body').mLoading({
+      text: "Please Wait..",
+  });
+  
+    if(isHouse == "true"){
+      var house = HawbNumber;
+      var houseID = HawbID
+    }else{
+      var houseID = 0;
+      var house = "";}
+    $("#viewList").empty();
+      var boENum=  $("#txtBOENo").val(); 
    
- getTSPDetailsMABB = function(CommodityGroup,CommodityName){
-  $('body').mLoading({
-    text: "Please Wait..",
-});
-$("#viewList").empty();
-  var boENum=  $("#txtBOENo").val(); 
-
-  console.log(AirlinePrefix + ',' + AwbNumber + ',' + HawbNumber + ',' + CreatedByUserId + ',' + OrganizationBranchId + ',' + OrganizationId);
-  $.ajax({
-  type: 'POST',
-  url: ACSServiceURL + "/ACS_IMP_TSPGetDetails",
-  data: JSON.stringify({
-      "OperationType":1,
-      "AirlinePrefix":AirlinePrefix,
-      "AwbNumber":AwbNumber,
-      "HawbNumber":HawbNumber, //IF HAWB IS THERE THEN SEND
-      "IGMNo":IGMNo,
-      "IGMYear":IGMYear,
-      "BoENumber":boENum,
-      "CreatedByUserId":CreatedByUserId,
-      "OrganizationBranchId":OrganizationBranchId,
-      "OrganizationId":OrganizationId,
-      "CommodityGroup":CommodityGroup,
-      "CommodityName":CommodityName
-      }
-      
-    ),
-  contentType: "application/json; charset=utf-8",
-  dataType: "json",
-  success: function (response, xhr, textStatus) {
-      var input = response.d;
-      console.log(response.d);
-      $("body").mLoading('hide');
-          const [clientXml, id] = input.split('~');
-          console.log(clientXml); 
-          console.log(id);
-          var fields = id.split('=');
-          console.log(fields[1]);
-          var payTspId = fields[1];
-          localStorage.setItem('payTspId', payTspId);
-          var obj = JSON.parse(clientXml);
-          console.log(obj);
-      console.log(obj.Status);
-      if (obj.ErrorMessage == "" || obj.ErrorMessage == null) {
-      $("#PDAccNo").text(obj["ReceiptDetails"].PDAccountNo); 
-      $("#CTOPDBalance").text((obj["ReceiptDetails"].PDBalance).toFixed(2));  
-      $("#TSPPayAmount").text((obj["ReceiptDetails"].PayableAmount).toFixed(2)); 
-      $("#payMode").text(obj["ReceiptDetails"].PaymentMode); 
-          var count = 0;
-          var row = "";
-
-      
+      console.log(AirlinePrefix + ',' + AwbNumber + ',' + HawbNumber + ',' + CreatedByUserId + ',' + OrganizationBranchId + ',' + OrganizationId);
+      $.ajax({
+      type: 'POST',
+      url: ACSServiceURL + "/ACS_IMP_TSPGetDetails_SAS",
+      data: JSON.stringify({
+          "OperationType":1,
+          "AirlinePrefix":AirlinePrefix,
+          "AwbNumber":AwbNumber,
+          "HawbNumber":house, //IF HAWB IS THERE THEN SEND
+          "IGMNo":0,
+          "IGMYear":0,
+          "BoENumber":0,
+          "CreatedByUserId":CreatedByUserId,
+          "OrganizationBranchId":OrganizationBranchId,
+          "OrganizationId":OrganizationId,
+          "CommodityGroup":CommodityGroup,
+          "CommodityName":CommodityName,
+          "MAWBID":MawbID,
+          "HAWBID":houseID
+          }
         
-          if (obj["ChargeDetails"].length > 0) {
-            for(i = 0; i< obj["ChargeDetails"].length ; i++){
-              
-              row += " <tr class=''>";
-              row += "<td>" + obj["ChargeDetails"][i].ChargeDescription + "</td>";
-              row += "<td>" + (obj["ChargeDetails"][i].TotalAmount).toFixed(2) + "</td>";
-              var gstAmount = obj["ChargeDetails"][i].CGSTAmount + obj["ChargeDetails"][i].IGSTAmount + obj["ChargeDetails"][i].SGSTAmount + obj["ChargeDetails"][i].UTGSTAmount;
-              row += "<td>" + (gstAmount).toFixed(2) + "</td>";
-              var totalAmt = gstAmount + (obj["ChargeDetails"][i].TotalAmount);
-              row += "<td>" + totalAmt.toFixed(2) + "</td>";
-              row += "</tr>";
+      ),
+    contentType: "application/json; charset=utf-8",
+    dataType: "json",
+    success: function (response, xhr, textStatus) {
+        var input = response.d;
+        console.log(response.d);
+        $("body").mLoading('hide');
+            const [clientXml, id] = input.split('~');
+            console.log(clientXml); 
+            console.log(id);
+            var fields = id.split('=');
+            console.log(fields[1]);
+            var payTspId = fields[1];
+            localStorage.setItem('payTspId', payTspId);
+            var obj = JSON.parse(clientXml);
+            console.log(obj);
+        console.log(obj.Status);
+        if (obj.ErrorMessage == "" || obj.ErrorMessage == null || obj.ErrorMessage == "SUCCESS") {
+        $("#PDAccNo").text(obj["ReceiptDetails"].CreditAccountNo); 
+        $("#CTOPDBalance").text((obj["ReceiptDetails"].CreditAccountBalance));  
+        $("#TSPPayAmount").text((obj["ReceiptDetails"].PayableAmount)); 
+        $("#payMode").text(obj["ReceiptDetails"].PaymentMode); 
+        $("#TSPCommCode").text((obj["CalculationRequest"].CommodityGroup));
+        $("#TSPFlightNoDate").text((obj["CalculationRequest"].FlightNo +" / "+  obj["CalculationRequest"].FlightDate));
+            var count = 0;
+            var row = "";
+            var chargeAmount = 0;
+            var taxAmount = 0;
+        
+          
+            if (obj["ChargeDetails"].length > 0) {
+              for(i = 0; i< obj["ChargeDetails"].length ; i++){
+                
+                row += " <tr class=''>";
+                row += "<td>" + obj["ChargeDetails"][i].ChargeDescription + "</td>";
+                row += "<td>" + (obj["ChargeDetails"][i].TotalAmount).toFixed(2) + "</td>";
+                row += "<td>" + (obj["ChargeDetails"][i].TaxAmount).toFixed(2) + "</td>";
+                row += "<td>" + (obj["ChargeDetails"][i].TotalAmount).toFixed(2) + "</td>";
+                a = (obj["ChargeDetails"][i].TotalAmount);
+                b = (obj["ChargeDetails"][i].TaxAmount);
+                // var gstAmount = obj["ChargeDetails"][i].CGSTAmount + obj["ChargeDetails"][i].IGSTAmount + obj["ChargeDetails"][i].SGSTAmount + obj["ChargeDetails"][i].UTGSTAmount;
+                // row += "<td>" + (gstAmount).toFixed(2) + "</td>";
+                // var totalAmt = gstAmount + (obj["ChargeDetails"][i].TotalAmount);
+                // row += "<td>" + totalAmt.toFixed(2) + "</td>";
+                chargeAmount += (a);
+                taxAmount += (b);
              
-              count++;
-            }
-              $("#viewList").append(row);
-            } else {
-                $("#viewList").html('There are no records').css('color', '#f7347a');
-            }
+                row += "</tr>";
+  
+                count++;
+              }
+              // row += " <tr class=''>";
+              row += "<td>TotalCharges</td>";
+              row += "<td>" + chargeAmount.toFixed(2) + "</td>";
+              row += "<td>" + taxAmount.toFixed(2)  + "</td>";
+              row += "<td>" + chargeAmount.toFixed(2)  + "</td>";
+              // row += "</tr>";
+                $("#viewList").append(row);
+              } else {
+                  $("#viewList").html('There are no records').css('color', '#f7347a');
+              }
+        
+            // console.log(response);
+            // $("#ddlCommodityTypeList").html('<option>' + obj[0].CargoType + '</option>'); 
+            // $("#ddlCommodityNameList").html('<option>' + obj[0].CommodityName + '</option>'); 
+            // $("#HSNCode").val(obj[0].HSNCode); 
+            // $("#payMode").text(obj[0].PaymentMode); 
+            // $("#CTOPDBalance").text($(xml).find('PDBalance').text()); 
+            // $("#TSPPayAmount").text($(xml).find('PayableAmount').text()); 
+            
+            // fillDriverImage(response);
+            $("body").mLoading('hide');
+            // $.alert('Details saved successfully');
+          }else{
+            $("#btnSubmitTSP").attr('disabled', 'disabled');
+            $("#btnSubmitTSP").css({ "background-color": "lightgrey", "color": "#585a5d" , "border-color": "grey"}); 
+            
+            errmsg = "Alert</br>";
+            errmsgcont = obj.ErrorMessage;
+            $.alert(errmsg,errmsgcont);
+            return;
+          }
       
-          // console.log(response);
-          // $("#ddlCommodityTypeList").html('<option>' + obj[0].CargoType + '</option>'); 
-          // $("#ddlCommodityNameList").html('<option>' + obj[0].CommodityName + '</option>'); 
-          // $("#HSNCode").val(obj[0].HSNCode); 
-          // $("#payMode").text(obj[0].PaymentMode); 
-          // $("#CTOPDBalance").text($(xml).find('PDBalance').text()); 
-          // $("#TSPPayAmount").text($(xml).find('PayableAmount').text()); 
-          
-          // fillDriverImage(response);
-          $("body").mLoading('hide');
-          // $.alert('Details saved successfully');
-        }else{
-          $("#btnSubmitTSP").attr('disabled', 'disabled');
-          $("#btnSubmitTSP").css({ "background-color": "lightgrey", "color": "#585a5d" , "border-color": "grey"}); 
-          
-          errmsg = "Alert</br>";
-          errmsgcont = obj.ErrorMessage;
-          $.alert(errmsg,errmsgcont);
-          return;
-        }
-    
-
-  },
-  error: function (xhr, textStatus, errorThrown) {
-      $("body").mLoading('hide');
-      alert('Server not responding...');
+  
+    },
+    error: function (xhr, textStatus, errorThrown) {
+        $("body").mLoading('hide');
+        alert('Server not responding...');
+    }
+  });
   }
-});
-}
   getTSPDetailsAISATS = function(CommodityGroup,CommodityName){
     $('body').mLoading({
       text: "Please Wait..",
@@ -1421,13 +1479,15 @@ $("#viewList").empty();
  
   PayTSPDetails = function(){
     var paymentMode = $("#paymentMode").val();
-    if($("#HSNCode").val() == "" ){
-      $("body").mLoading('hide');
-      errmsg = "Message</br>";
-      errmsgcont = "Please enter HSN Code.</br>";
-      $.alert(errmsg,errmsgcont);
-      return;
-    }
+    var chargeCode = $("#chargeCode").val();
+    var remark = $("#remark").val();
+    // if($("#HSNCode").val() == "" ){
+    //   $("body").mLoading('hide');
+    //   errmsg = "Message</br>";
+    //   errmsgcont = "Please enter HSN Code.</br>";
+    //   $.alert(errmsg,errmsgcont);
+    //   return;
+    // }
     if(paymentMode == "Cash"){
       
     }else{
@@ -1502,6 +1562,8 @@ $("#viewList").empty();
           "BoERCVDGRWt":0,
           "BoEChWt":0,
           "HSNCode":HSNCode,
+          "ChargeCode" : chargeCode,
+          "remark" : remark,
           "CommodityTypeID":commodityTypeId,
           "BoEID":MawbID,
           "RequestID":RequestID,
@@ -1525,6 +1587,13 @@ $("#viewList").empty();
             $("body").mLoading('hide');
           }else{
             if(obj[0].StrMessage == "Transaction password is invalid."){
+              $("body").mLoading('hide');
+              errmsg = "Alert</br>";
+              errmsgcont = obj[0].StrMessage;
+              $.alert(errmsg,errmsgcont);
+              return;
+            }
+            else if(obj[0].StrMessage == "Please enter contact name and number for customs in remark."){
               $("body").mLoading('hide');
               errmsg = "Alert</br>";
               errmsgcont = obj[0].StrMessage;
@@ -1788,8 +1857,10 @@ $("#viewList").empty();
                   getTSPDetailsMABB(CommodityGroup,CommodityName);
                   else if(CTOName == "AISATS")
                   getTSPDetailsAISATS(CommodityGroup,CommodityName);
+                  else if(CTOName == "KALE_GHA")
+                    getTSPDetailsMABB(CommodityGroup,CommodityName);
                   else{
-                  getTSPDetailsKaleGHA(CommodityGroup,CommodityName);
+                    getTSPDetailsMABB(CommodityGroup,CommodityName);
                   }
             }else{
               var type;
@@ -1810,8 +1881,10 @@ $("#viewList").empty();
                   getTSPDetailsMABB(CommodityGroup,CommodityName);
                   else if(CTOName == "AISATS")
                   getTSPDetailsAISATS(CommodityGroup,CommodityName);
+                  else if(CTOName == "KALE_GHA")
+                    getTSPDetailsMABB(CommodityGroup,CommodityName);
                   else{
-                  getTSPDetailsKaleGHA(CommodityGroup,CommodityName);
+                    getTSPDetailsMABB(CommodityGroup,CommodityName);
                   }
             }
             // $.alert('Details saved successfully');
@@ -1828,7 +1901,7 @@ $("#viewList").empty();
             
             errmsg = "Wrong MAWB number</br>";
             errmsgcont = "Please enter a valid MAWB number</br>";
-            $.alert(errmsg,errmsgcont);
+            // $.alert(errmsg,errmsgcont);
             return;
         }
 
@@ -1918,8 +1991,10 @@ $("#viewList").empty();
             getTSPDetailsMABB(CommodityGroup,CommodityName);
             else if(CTOName == "AISATS")
                   getTSPDetailsAISATS(CommodityGroup,CommodityName);
+            else if(CTOName == "KALE_GHA")
+              getTSPDetailsMABB(CommodityGroup,CommodityName);
                   else{
-                  getTSPDetailsKaleGHA(CommodityGroup,CommodityName);
+                    getTSPDetailsMABB(CommodityGroup,CommodityName);
                   }
   }
  
@@ -2271,8 +2346,8 @@ function downloadPDF() {
   }else{
     var number = MAWBNo;
   }
-  var path = "https://acssrvdev.kalelogistics.com/ACS_SAS_UAT_Upgrade/PDFFile/DOPrint_"+ number +".pdf";
-  window.open(path);
+  // var path = "https://acssrvdev.kalelogistics.com/ACS_SAS_UAT_Upgrade/PDFFile/DOPrint_"+ number +".pdf";
+  window.open(DOPath);
 }
 
 function sharePDF() {
@@ -2281,6 +2356,74 @@ function sharePDF() {
   }else{
     var number = MAWBNo;
   }
-  var path = "https://sasacsdev.kalelogistics.com/ACS_SAS_UAT/PDFFile/DOPrint_"+ number +".pdf";
-  window.plugins.socialsharing.share('Here is your PDF file', 'Your PDF', path)
+  // var path = "https://bialsrvuat.cargobyblr.in/EDocket_BIAL/DOPrint_"+ number +".pdf";
+  window.plugins.socialsharing.share('', 'Your PDF', DOPath)
+}
+
+ACS_Imp_Get_DO_Print = function(){
+  $('body').mLoading({
+    text: "Please Wait..",
+});
+  var AwbNumber = MAWBNo.replace('-', '');
+  if(isHouse == "true"){
+    var house = HawbNumber;
+    var houseID = HawbID
+  }else{
+    var houseID = 0;
+    var house = "";}
+  console.log(AirlinePrefix + ',' + AwbNumber + ',' + HawbNumber + ',' + CreatedByUserId + ',' + OrganizationBranchId + ',' + OrganizationId);
+  $.ajax({
+  type: 'POST',
+  url: ACSServiceURL + "/ACS_Imp_Get_DO_Print",
+  data: JSON.stringify({
+                "MAWBNumber":AwbNumber,
+                "MAWBId":MawbID,
+                "HAWBId":houseID}),
+
+              
+  contentType: "application/json; charset=utf-8",
+  dataType: "json",
+  success: function (response, xhr, textStatus) {
+      // var obj = JSON.parse(response.d);
+      console.log(response.d);
+      // console.log(obj);
+      DOPath = response.d;
+      $("body").mLoading('hide');
+      // if (obj.length > 0) {
+      //   if (obj[0].status == "S") {
+      //     var currXml = obj[0].strInputXML;
+      //     xmlDoc = $.parseXML( currXml ),
+      //     $xml = $( xmlDoc ),
+      //     $details = $xml.find("Details"),
+      //     $DamagedNOP = $details.attr("DamagedNOP");
+      
+      //     console.log($details);
+      //     console.log($DamagedNOP);
+      //     DamagedNOP = $DamagedNOP;
+      //     // fillDriverImage(response);
+      //     $("body").mLoading('hide');
+      //     // $.alert('Details saved successfully');
+      //   }else{
+            
+      //     errmsg = "Alert</br>";
+      //     errmsgcont = obj[0].Msg;
+      //     // $.alert(errmsg,errmsgcont);
+      //     return;
+
+      //   }
+      // } else {
+      //     $("body").mLoading('hide');
+          
+      //     errmsg = "Wrong MAWB number</br>";
+      //     errmsgcont = "Please enter a valid MAWB number</br>";
+      //     $.alert(errmsg,errmsgcont);
+      //     return;
+      // }
+
+  },
+  error: function (xhr, textStatus, errorThrown) {
+      $("body").mLoading('hide');
+      alert('Server not responding...');
+  }
+});
 }
